@@ -63,6 +63,7 @@ function migrate(db: DatabaseSync) {
       ingredient_name_en TEXT,
       brand_name TEXT,
       display_name TEXT,
+      en_name TEXT,
       brand_owner_name TEXT,
       brand_owner_national_id TEXT,
       producer_name TEXT,
@@ -268,11 +269,34 @@ function migrate(db: DatabaseSync) {
   ensureColumn(db, "products", "identity_id", "INTEGER");
   ensureColumn(db, "products", "is_current", "INTEGER NOT NULL DEFAULT 1");
   ensureColumn(db, "products", "price_missing_latest", "INTEGER NOT NULL DEFAULT 0");
+  ensureColumn(db, "products", "en_name", "TEXT");
   db.exec(`
     CREATE INDEX IF NOT EXISTS idx_products_identity
       ON products(identity_id);
     CREATE INDEX IF NOT EXISTS idx_products_current
       ON products(is_current);
+
+    UPDATE products
+    SET en_name = json_extract(raw_json, '$.EnName')
+    WHERE (en_name IS NULL OR en_name = '')
+      AND raw_json IS NOT NULL
+      AND json_valid(raw_json)
+      AND COALESCE(json_extract(raw_json, '$.EnName'), '') <> '';
+
+    UPDATE products
+    SET display_name = TRIM(
+      COALESCE(json_extract(raw_json, '$.EnName'), '') ||
+      CASE
+        WHEN COALESCE(json_extract(raw_json, '$.EnName'), '') <> ''
+         AND COALESCE(brand_owner_name, '') <> ''
+        THEN ' · ' || brand_owner_name
+        ELSE ''
+      END
+    )
+    WHERE product_type = '28'
+      AND raw_json IS NOT NULL
+      AND json_valid(raw_json)
+      AND COALESCE(json_extract(raw_json, '$.EnName'), '') <> '';
   `);
 }
 

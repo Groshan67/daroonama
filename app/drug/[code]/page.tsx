@@ -47,7 +47,7 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
       ? `قیمت بسته ${faPrice(product.priceToman)}${product.unitPriceToman !== null ? ` و قیمت واحد ${faPrice(product.unitPriceToman)}` : ""}`
       : "قیمت ثبت‌شده‌ای برای این محصول موجود نیست";
   return seoMetadata({
-    title: `${product.displayName} ${formatDose(product.dose)} | قیمت و تاریخچه`,
+    title: `${[product.displayName, formatDose(product.dose)].filter(Boolean).join(" ")} | قیمت و تاریخچه`,
     description: `${product.displayName} از ${product.brandOwnerName ?? product.producerName ?? "شرکت ثبت‌شده"}؛ ${price}. کد IRC ${product.canonicalIrc}، کد ژنریک ${product.genericCode ?? "—"} و ATC ${product.atc ?? "—"}.`,
     path: `/drug/${encodeURIComponent(product.canonicalIrc)}`,
     keywords: [

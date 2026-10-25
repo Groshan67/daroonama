@@ -52,6 +52,7 @@ export type ProductRow = {
   ingredient_name_en: string | null;
   brand_name: string | null;
   display_name: string | null;
+  en_name: string | null;
   brand_owner_name: string | null;
   brand_owner_national_id: string | null;
   producer_name: string | null;
@@ -105,6 +106,7 @@ const PRODUCT_COLUMNS = [
   "ingredient_name_en",
   "brand_name",
   "display_name",
+  "en_name",
   "brand_owner_name",
   "brand_owner_national_id",
   "producer_name",
@@ -156,6 +158,7 @@ function productValues(product: NormalizedProduct, now: string, batchId: number)
     product.ingredientNameEn,
     product.brandName,
     product.displayName,
+    product.enName,
     product.brandOwnerName,
     product.brandOwnerNationalId,
     product.producerName,

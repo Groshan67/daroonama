@@ -21,6 +21,7 @@ export type NormalizedProduct = {
   ingredientNameEn: string;
   brandName: string;
   displayName: string;
+  enName: string;
   brandOwnerName: string;
   brandOwnerNationalId: string;
   producerName: string;
@@ -394,11 +395,18 @@ export function normalizeProduct(
     slugify(ingredientFa) ||
     `product-${irc}`;
   const brand = extractBrand(faName, enName);
-  const displayName = brand || baseFaName(faName, ingredientFa, dose) || `محصول ${irc}`;
   const brandOwnerName =
     pick(row, headers, "brandOwnerCompanyName") || pick(row, headers, "producerCompanyName");
   const brandOwnerNationalId = pick(row, headers, "brandOwnerNationalId");
   const producerName = pick(row, headers, "producerCompanyName") || brandOwnerName;
+  // Supplements often carry a category-like Persian name (e.g. "آقایان").
+  // Their real product name is EnName; show it together with the brand owner.
+  const supplementDisplayName =
+    productType === "28" && enName
+      ? [enName, brandOwnerName].filter(Boolean).join(" · ")
+      : "";
+  const displayName =
+    supplementDisplayName || brand || baseFaName(faName, ingredientFa, dose) || `محصول ${irc}`;
   const producerCountry = pick(row, headers, "producerCountryName");
   const fingerprintParts = [
     genericCode,
@@ -435,6 +443,7 @@ export function normalizeProduct(
     ingredientNameEn: ingredientEn,
     brandName: brand,
     displayName,
+    enName,
     brandOwnerName,
     brandOwnerNationalId,
     producerName,
