@@ -84,6 +84,7 @@
 - اگر فایل جدید قیمت نداشته باشد، آخرین قیمت معتبر حفظ می‌شود.
 - `ConsumerPrice` قیمت هر واحد به ریال است؛ قیمت بسته = `ConsumerPrice × PackageCount` و قیمت واحد = `ConsumerPrice`. قیمت خالی مجاز است و برای `PackageCount=0` قیمت بسته «نامشخص» می‌شود. `Status` فقط به‌صورت کد خام ذخیره می‌شود و تفسیر نمی‌شود. `ProductType` 22 دارو و 28 مکمل است.
 - برای `ProductType=28` نام نمایشی از `EnName · BrandOwnerCompanyName` ساخته می‌شود و `EnName` در ستون `en_name` ذخیره می‌شود.
+- برای `ProductType=22` نام نمایشی از `BrandName · IngredientNameFa` ساخته می‌شود؛ برای محصول بدون برند از `IngredientNameFa + Dose`.
 - پارسر، فایل‌های دارای ستون اضافی/جابه‌جا (نمونه `A14050601.csv`) را خودکار اصلاح می‌کند.
 - جدول `atc_nodes` پنج سطح ATC را نگه می‌دارد و با اسکریپت `scripts/import-atc.mjs` درج می‌شود.
 - کاوش در `/imported`، جزئیات در `/imported/[irc]` و مرور ATC در `/atc` و `/atc/[code]`.

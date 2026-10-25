@@ -52,8 +52,10 @@ export function ProductTable({
                   active ? "bg-[#eaf3fe]" : "hover:bg-[#f5f9ff]"
                 }`}
               >
-                <td className="px-3 py-2.5 sm:px-4">
-                  <span className="block font-semibold text-ink">{product.displayName}</span>
+                <td className="min-w-[190px] max-w-[320px] px-3 py-2.5 align-top sm:px-4">
+                  <span className="block whitespace-normal break-words pe-2 text-start font-semibold leading-6 text-ink">
+                    {product.displayName}
+                  </span>
                   <span dir="ltr" className="mt-0.5 block font-mono text-[8px] text-faint">{product.irc}</span>
                 </td>
                 <td className="px-2 py-2.5 text-muted">

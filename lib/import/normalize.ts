@@ -405,8 +405,16 @@ export function normalizeProduct(
     productType === "28" && enName
       ? [enName, brandOwnerName].filter(Boolean).join(" · ")
       : "";
+  const genericDisplayName =
+    brand && ingredientFa && ingredientFa !== "نامشخص" && ingredientFa !== brand
+      ? [brand, ingredientFa].filter(Boolean).join(" · ")
+      : "";
   const displayName =
-    supplementDisplayName || brand || baseFaName(faName, ingredientFa, dose) || `محصول ${irc}`;
+    supplementDisplayName ||
+    genericDisplayName ||
+    brand ||
+    baseFaName(faName, ingredientFa, dose) ||
+    `محصول ${irc}`;
   const producerCountry = pick(row, headers, "producerCountryName");
   const fingerprintParts = [
     genericCode,

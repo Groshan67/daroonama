@@ -297,6 +297,24 @@ function migrate(db: DatabaseSync) {
       AND raw_json IS NOT NULL
       AND json_valid(raw_json)
       AND COALESCE(json_extract(raw_json, '$.EnName'), '') <> '';
+
+    UPDATE products
+    SET display_name = CASE
+      WHEN COALESCE(brand_name, '') <> ''
+       AND COALESCE(ingredient_name_fa, '') <> ''
+       AND ingredient_name_fa <> 'نامشخص'
+       AND brand_name <> ingredient_name_fa
+      THEN brand_name || ' · ' || ingredient_name_fa
+      WHEN COALESCE(ingredient_name_fa, '') <> ''
+       AND ingredient_name_fa <> 'نامشخص'
+       AND COALESCE(dose, '') <> ''
+      THEN ingredient_name_fa || ' ' || dose
+      WHEN COALESCE(ingredient_name_fa, '') <> ''
+       AND ingredient_name_fa <> 'نامشخص'
+      THEN ingredient_name_fa
+      ELSE display_name
+    END
+    WHERE product_type = '22';
   `);
 }
 
