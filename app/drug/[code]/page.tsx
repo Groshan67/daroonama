@@ -24,6 +24,7 @@ import {
   getClassIngredients,
   getDoseOptions,
   getDrugIndex,
+  getMarketPrice,
   getOtherDosageForms,
 } from "@/lib/catalog/queries";
 import { faDigits, faNum, faPercent, faPrice, formatDose, productTypeLabel } from "@/lib/format";
@@ -82,6 +83,11 @@ export default async function DrugPage({ params, searchParams }: PageProps) {
   const otherForms = getOtherDosageForms(product);
   const classIngredients = getClassIngredients(product);
   const drugIndex = getDrugIndex(product.drugIndexId);
+  const marketPrice = getMarketPrice(product.canonicalIrc);
+  const displayPrice = product.priceToman ?? marketPrice?.priceToman ?? null;
+  const displayUnitPrice = product.unitPriceToman ?? marketPrice?.unitPriceToman ?? null;
+  const displayPackageCount = product.packageCount ?? marketPrice?.packageCount ?? null;
+  const usingMarketPrice = product.priceToman === null && marketPrice !== undefined;
   const lowestGeneric = detail.alternatives
     .map((item) => item.priceToman)
     .filter((value): value is number => value !== null)
@@ -212,10 +218,12 @@ export default async function DrugPage({ params, searchParams }: PageProps) {
           </div>
 
           <div className="border-t border-line bg-gradient-to-b from-[#f8fbff] to-[#fbfdff] p-5 lg:border-s lg:border-t-0">
-            <p className="text-[10px] font-medium text-faint">آخرین قیمت مصرف‌کننده</p>
+            <p className="text-[10px] font-medium text-faint">
+              {usingMarketPrice ? "قیمت بازار (داروکده)" : "آخرین قیمت مصرف‌کننده"}
+            </p>
             <div className="mt-1 flex items-end gap-1.5">
               <span className="num text-[30px] font-extrabold leading-[1.3] tracking-tight text-ink">
-                {product.priceToman !== null ? faNum(product.priceToman) : "—"}
+                {displayPrice !== null ? faNum(displayPrice) : "—"}
               </span>
               <span className="mb-1.5 text-[11px] font-medium text-muted">تومان</span>
             </div>
@@ -224,21 +232,23 @@ export default async function DrugPage({ params, searchParams }: PageProps) {
                 ? `آخرین مشاهده: ${formatJalali(last.observedAt)} · قیمت واحد ${faPrice(
                     last.unitPriceToman,
                   )} تومان`
-                : "قیمتی در فایل منبع ثبت نشده است"}
+                : usingMarketPrice
+                  ? "قیمت رسمی ثبت نشده؛ قیمت بازار داروکده نمایش داده می‌شود."
+                  : "قیمتی در فایل منبع ثبت نشده است"}
             </div>
 
             <div className="mt-3 grid grid-cols-2 gap-2 border-t border-line/80 pt-3">
               <div>
                 <p className="text-[9px] text-faint">قیمت هر واحد</p>
                 <p className="num mt-0.5 text-[12px] font-bold text-ink-soft">
-                  {product.unitPriceToman !== null ? faNum(product.unitPriceToman) : "—"}
+                  {displayUnitPrice !== null ? faNum(displayUnitPrice) : "—"}
                   <span className="ms-1 text-[8.5px] font-normal text-faint">تومان</span>
                 </p>
               </div>
               <div>
                 <p className="text-[9px] text-faint">تعداد بسته</p>
                 <p className="num mt-0.5 text-[12px] font-bold text-ink-soft">
-                  {product.packageCount !== null ? faNum(product.packageCount) : "—"}
+                  {displayPackageCount !== null ? faNum(displayPackageCount) : "—"}
                 </p>
               </div>
             </div>
@@ -250,6 +260,60 @@ export default async function DrugPage({ params, searchParams }: PageProps) {
                   ? "در فایل منبع برای این محصول قیمت مصرف‌کننده ثبت نشده است."
                   : "قیمت از آخرین فایل رسمی واردشده خوانده شده است."}
             </div>
+
+            {marketPrice && usingMarketPrice && (
+              <div className="mt-2 flex flex-wrap items-center gap-x-2 gap-y-1 text-[8.5px] text-faint">
+                {marketPrice.originalPriceToman !== null && (
+                  <span className="num line-through">{faNum(marketPrice.originalPriceToman)} تومان</span>
+                )}
+                {marketPrice.discountPercent !== null && (
+                  <span className="text-[#a96a18]">{faNum(marketPrice.discountPercent)}٪ تخفیف</span>
+                )}
+                {marketPrice.sourceUrl && (
+                  <a
+                    href={`https://darukade.com${marketPrice.sourceUrl}`}
+                    target="_blank"
+                    rel="noopener noreferrer nofollow"
+                    className="font-medium text-[#a96a18] hover:underline"
+                  >
+                    منبع: داروکده
+                  </a>
+                )}
+              </div>
+            )}
+
+            {marketPrice && !usingMarketPrice && (
+              <div className="mt-3 rounded-lg border border-[#efd7b4] bg-[#fff7e8] p-2.5">
+                <div className="flex items-center justify-between gap-2">
+                  <p className="text-[9px] font-medium text-[#8f6d34]">قیمت بازار داروکده</p>
+                  {marketPrice.discountPercent !== null && (
+                    <span className="num rounded bg-[#c47a20] px-1.5 py-0.5 text-[8px] font-bold text-white">
+                      {faNum(marketPrice.discountPercent)}٪ تخفیف
+                    </span>
+                  )}
+                </div>
+                <div className="mt-1 flex items-end gap-2">
+                  <span className="num text-[16px] font-extrabold text-[#8f6d34]">
+                    {faPrice(marketPrice.priceToman)}
+                  </span>
+                  {marketPrice.originalPriceToman !== null && (
+                    <span className="num text-[9px] text-faint line-through">
+                      {faNum(marketPrice.originalPriceToman)}
+                    </span>
+                  )}
+                </div>
+                {marketPrice.sourceUrl && (
+                  <a
+                    href={`https://darukade.com${marketPrice.sourceUrl}`}
+                    target="_blank"
+                    rel="noopener noreferrer nofollow"
+                    className="mt-1 inline-block text-[8.5px] font-medium text-[#a96a18] hover:underline"
+                  >
+                    مشاهده صفحه داروکده
+                  </a>
+                )}
+              </div>
+            )}
 
             <div className="mt-3">
               <WatchlistButton

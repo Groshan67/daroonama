@@ -175,6 +175,32 @@ function migrate(db: DatabaseSync) {
     CREATE INDEX IF NOT EXISTS idx_drug_index_ingredients_index
       ON drug_index_ingredients(drug_index_id);
 
+    CREATE TABLE IF NOT EXISTS market_prices (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      source TEXT NOT NULL,
+      source_product_id TEXT NOT NULL,
+      source_url TEXT,
+      matched_irc TEXT NOT NULL,
+      match_score INTEGER NOT NULL,
+      match_confidence TEXT NOT NULL,
+      price_toman INTEGER NOT NULL,
+      original_price_toman INTEGER,
+      discount_percent REAL,
+      package_count INTEGER,
+      unit_price_toman INTEGER,
+      raw_name TEXT,
+      raw_brand TEXT,
+      raw_company TEXT,
+      fetched_at TEXT NOT NULL,
+      verified_at TEXT,
+      UNIQUE(source, source_product_id, matched_irc)
+    );
+
+    CREATE INDEX IF NOT EXISTS idx_market_prices_irc
+      ON market_prices(matched_irc);
+    CREATE INDEX IF NOT EXISTS idx_market_prices_source
+      ON market_prices(source, source_product_id);
+
     CREATE TABLE IF NOT EXISTS product_identity (
       id INTEGER PRIMARY KEY AUTOINCREMENT,
       identity_key TEXT NOT NULL UNIQUE,
@@ -285,9 +311,9 @@ function migrate(db: DatabaseSync) {
 
     UPDATE products
     SET display_name = TRIM(
-      COALESCE(json_extract(raw_json, '$.EnName'), '') ||
+      TRIM(json_extract(raw_json, '$.EnName'), ' .-–—') ||
       CASE
-        WHEN COALESCE(json_extract(raw_json, '$.EnName'), '') <> ''
+        WHEN COALESCE(TRIM(json_extract(raw_json, '$.EnName'), ' .-–—'), '') <> ''
          AND COALESCE(brand_owner_name, '') <> ''
         THEN ' · ' || brand_owner_name
         ELSE ''

@@ -209,6 +209,25 @@ export type CatalogHome = {
   }[];
 };
 
+export type MarketPrice = {
+  id: number;
+  source: string;
+  sourceProductId: string;
+  sourceUrl: string | null;
+  matchedIrc: string;
+  matchScore: number;
+  matchConfidence: string;
+  priceToman: number;
+  originalPriceToman: number | null;
+  discountPercent: number | null;
+  packageCount: number | null;
+  unitPriceToman: number | null;
+  rawName: string | null;
+  rawBrand: string | null;
+  rawCompany: string | null;
+  fetchedAt: string;
+};
+
 export type DrugIndexIngredient = {
   id: number;
   substanceId: number | null;

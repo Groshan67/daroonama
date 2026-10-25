@@ -401,9 +401,10 @@ export function normalizeProduct(
   const producerName = pick(row, headers, "producerCompanyName") || brandOwnerName;
   // Supplements often carry a category-like Persian name (e.g. "آقایان").
   // Their real product name is EnName; show it together with the brand owner.
+  const cleanEnName = enName.replace(/^[\s.\-–—]+|[\s.\-–—]+$/g, "").trim();
   const supplementDisplayName =
-    productType === "28" && enName
-      ? [enName, brandOwnerName].filter(Boolean).join(" · ")
+    productType === "28" && cleanEnName
+      ? [cleanEnName, brandOwnerName].filter(Boolean).join(" · ")
       : "";
   const genericDisplayName =
     brand && ingredientFa && ingredientFa !== "نامشخص" && ingredientFa !== brand

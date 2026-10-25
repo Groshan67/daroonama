@@ -320,6 +320,20 @@ display_name = BrandName · IngredientNameFa
 - اگر برند و ماده یکسان باشند، تکرار حذف می‌شود.
 - نام کامل FaName و دوز در ستون‌های جداگانه جدول و صفحه دارو باقی می‌ماند.
 
+### قیمت بازار داروکده
+
+جدول `market_prices` برای قیمت بازار مکمل‌ها ساخته شده است:
+
+```text
+source, source_product_id, matched_irc, match_score, match_confidence,
+price_toman, original_price_toman, discount_percent, package_count,
+unit_price_toman, raw_name, raw_brand, raw_company, fetched_at
+```
+
+- قیمت رسمی محصولات بازنویسی نمی‌شود.
+- `discount_cost` به تومان به‌عنوان قیمت بازار ذخیره می‌شود.
+- فقط تطبیق‌های high/variant با شباهت نام ۰٫۷۰+ وارد می‌شوند.
+
 ## ۹. هویت محصول و صفحه‌های واقعی
 
 از آنجا که `IRC` با ثبت مجدد محصول تغییر می‌کند، سه جدول اضافه شده است:

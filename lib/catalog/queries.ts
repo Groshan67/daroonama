@@ -20,6 +20,7 @@ import type {
   ClassificationGroup,
   DrugIndexIngredient,
   DrugIndexRecord,
+  MarketPrice,
 } from "./types";
 
 type SqlRow = Record<string, unknown>;
@@ -508,6 +509,59 @@ export function getCatalogHome(): CatalogHome {
     topPriced,
     topCheap,
     priceChanges,
+  };
+}
+
+export function getMarketPrice(irc: string): MarketPrice | undefined {
+  const row = getDb()
+    .prepare(
+      `SELECT id, source, source_product_id, source_url, matched_irc,
+              match_score, match_confidence, price_toman,
+              original_price_toman, discount_percent, package_count,
+              unit_price_toman, raw_name, raw_brand, raw_company, fetched_at
+       FROM market_prices
+       WHERE matched_irc = ?
+       ORDER BY fetched_at DESC, id DESC
+       LIMIT 1`,
+    )
+    .get(irc) as
+    | {
+        id: number;
+        source: string;
+        source_product_id: string;
+        source_url: string | null;
+        matched_irc: string;
+        match_score: number;
+        match_confidence: string;
+        price_toman: number;
+        original_price_toman: number | null;
+        discount_percent: number | null;
+        package_count: number | null;
+        unit_price_toman: number | null;
+        raw_name: string | null;
+        raw_brand: string | null;
+        raw_company: string | null;
+        fetched_at: string;
+      }
+    | undefined;
+  if (!row) return undefined;
+  return {
+    id: row.id,
+    source: row.source,
+    sourceProductId: row.source_product_id,
+    sourceUrl: row.source_url,
+    matchedIrc: row.matched_irc,
+    matchScore: row.match_score,
+    matchConfidence: row.match_confidence,
+    priceToman: row.price_toman,
+    originalPriceToman: row.original_price_toman,
+    discountPercent: row.discount_percent,
+    packageCount: row.package_count,
+    unitPriceToman: row.unit_price_toman,
+    rawName: row.raw_name,
+    rawBrand: row.raw_brand,
+    rawCompany: row.raw_company,
+    fetchedAt: row.fetched_at,
   };
 }
 
