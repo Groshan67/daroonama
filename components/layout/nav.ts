@@ -5,6 +5,7 @@ import {
   CalendarDays,
   Calculator,
   Database,
+  GitCompareArrows,
   Home,
   Layers,
   Network,
@@ -13,6 +14,7 @@ import {
   Sparkles,
   Tags,
   Upload,
+  Wallet,
   type LucideIcon,
 } from "lucide-react";
 
@@ -39,6 +41,8 @@ export const NAV_GROUPS: NavGroup[] = [
     label: "جستجو",
     items: [
       { label: "جستجوی دارو", href: "/search", icon: Search },
+      { label: "نرخ دارو", href: "/drug-prices", icon: Wallet },
+      { label: "مقایسه قیمت", href: "/compare", icon: GitCompareArrows },
       { label: "مواد مؤثره", href: "/ingredients", icon: Layers },
       { label: "طبقه‌بندی اثر دارویی", href: "/categories", icon: Tags },
       { label: "سازندگان", href: "/companies", icon: Building2 },
@@ -71,6 +75,8 @@ export const NAV_GROUPS: NavGroup[] = [
 
 export const PAGE_TITLES: Record<string, string> = {
   search: "جستجوی دارو",
+  "drug-prices": "نرخ دارو",
+  compare: "مقایسه قیمت",
   ingredients: "مواد مؤثره",
   categories: "طبقه‌بندی اثر دارویی",
   companies: "سازندگان",

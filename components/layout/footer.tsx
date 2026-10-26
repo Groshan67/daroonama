@@ -5,10 +5,12 @@ import { AdminAccess } from "./admin-access";
 import { SITE } from "@/lib/site";
 
 const QUICK_LINKS = [
+  { label: "نرخ دارو", href: "/drug-prices" },
+  { label: "مقایسه قیمت دارو", href: "/compare" },
   { label: "جستجوی دارو", href: "/search" },
   { label: "مواد مؤثره", href: "/ingredients" },
   { label: "طبقه‌بندی اثر دارویی", href: "/categories" },
-  { label: "سازندگان", href: "/companies" },
+  { label: "شرکت‌های داروسازی", href: "/companies" },
 ];
 
 const TOOL_LINKS = [

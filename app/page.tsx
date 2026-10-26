@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { HomeSearch } from "@/components/home/home-search";
 import { SearchCards, ToolCards } from "@/components/home/explore-cards";
 import { ReadBanner } from "@/components/home/read-banner";
@@ -62,6 +63,15 @@ export default function HomePage() {
             </div>
 
             <HomeSearch />
+
+            <div className="mt-3 flex flex-wrap items-center justify-center gap-2">
+              <Link href="/drug-prices" className="btn-secondary">
+                نرخ دارو و استعلام قیمت
+              </Link>
+              <Link href="/compare" className="btn-secondary">
+                مقایسه قیمت دارو
+              </Link>
+            </div>
           </div>
         </div>
       </section>

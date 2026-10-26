@@ -10,11 +10,17 @@ import { seoMetadata } from "@/lib/seo";
 export const dynamic = "force-dynamic";
 
 export const metadata: Metadata = seoMetadata({
-  title: "سازندگان و صاحبان برند دارو | فهرست شرکت‌ها",
+  title: "شرکت های داروسازی ایران | فهرست تولیدکنندگان و صاحبان برند",
   description:
-    "فهرست صاحبان برند و تولیدکنندگان دارو در ایران با تعداد محصول، تنوع مواد مؤثره و بازه قیمت بسته.",
+    "فهرست شرکت‌های داروسازی ایران، صاحبان برند و تولیدکنندگان دارو با تعداد محصول، تنوع مواد مؤثره و بازه قیمت بسته.",
   path: "/companies",
-  keywords: ["سازندگان دارو", "شرکت‌های داروسازی", "صاحب برند دارو", "تولیدکننده دارو"],
+  keywords: [
+    "شرکت های داروسازی",
+    "شرکت های دارو ساز",
+    "تولیدکنندگان دارو",
+    "صاحب برند دارو",
+    "صنعت داروسازی ایران",
+  ],
 });
 
 export default function CompaniesPage() {
@@ -22,26 +28,31 @@ export default function CompaniesPage() {
   const totalProducts = companies.reduce((sum, company) => sum + company.count, 0);
   return (
     <div className="page-container py-7 sm:py-9">
-      <Breadcrumbs items={[{ label: "سازندگان" }]} />
+      <Breadcrumbs items={[{ label: "شرکت‌های داروسازی" }]} />
       <div className="flex flex-wrap items-end justify-between gap-3">
         <div>
           <p className="eyebrow">
             <span className="h-1 w-1 rounded-full bg-brand" />
             {faNum(companies.length)} شرکت · {faNum(totalProducts)} محصول
           </p>
-          <h1 className="mt-1.5 text-[24px] font-extrabold text-ink sm:text-[28px]">
-            قیمت داروها بر اساس شرکت
+          <h1 className="mt-1.5 text-[24px] font-extrabold text-ink sm:text-[30px]">
+            شرکت‌های داروسازی ایران
           </h1>
-          <p className="mt-1.5 max-w-[760px] text-[12px] leading-6 text-muted">
-            صاحبان برند (BrandOwner) و تولیدکنندگان واقعی (Producer) به‌صورت جداگانه در صفحه هر شرکت
-            نمایش داده می‌شوند.
+          <p className="mt-1.5 max-w-[780px] text-[12px] leading-6 text-muted">
+            فهرست صاحبان برند و تولیدکنندگان داروهای ایرانی و خارجی؛ قیمت محصولات، تنوع مواد
+            مؤثره و نقش هر شرکت در زنجیره تولید را ببینید.
           </p>
         </div>
-        <Link href="/search" className="btn-secondary">
-          <Building2 className="h-3.5 w-3.5" />
-          جستجوی پیشرفته
-          <ArrowLeft className="h-3.5 w-3.5" />
-        </Link>
+        <div className="flex flex-wrap gap-2">
+          <Link href="/drug-prices" className="btn-secondary">
+            <Building2 className="h-3.5 w-3.5" />
+            نرخ دارو
+          </Link>
+          <Link href="/search" className="btn-secondary">
+            <ArrowLeft className="h-3.5 w-3.5" />
+            جستجوی پیشرفته
+          </Link>
+        </div>
       </div>
       <CompanyBrowser companies={companies} />
     </div>

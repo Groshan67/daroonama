@@ -17,6 +17,8 @@ export default function sitemap(): MetadataRoute.Sitemap {
 
   const staticRoutes = [
     "",
+    "/drug-prices",
+    "/compare",
     "/ingredients",
     "/categories",
     "/companies",
@@ -55,6 +57,17 @@ export default function sitemap(): MetadataRoute.Sitemap {
     )
     .all() as unknown as { id: string; last_seen_at: string | null }[];
 
+  const compareIngredients = db
+    .prepare(
+      `SELECT ingredient_key AS key, MAX(last_seen_at) AS last_seen_at, COUNT(*) AS count
+       FROM products
+       WHERE is_current = 1 AND ingredient_key IS NOT NULL AND ingredient_key != ''
+       GROUP BY ingredient_key
+       ORDER BY count DESC, key ASC
+       LIMIT 20`,
+    )
+    .all() as unknown as { key: string; last_seen_at: string | null }[];
+
   const categories = db
     .prepare(
       `SELECT n.code, MAX(p.last_seen_at) AS last_seen_at
@@ -79,6 +92,12 @@ export default function sitemap(): MetadataRoute.Sitemap {
       lastModified: safeDate(row.last_seen_at),
       changeFrequency: "monthly" as const,
       priority: 0.65,
+    })),
+    ...compareIngredients.map((row) => ({
+      url: `${base}/compare/${encodeURIComponent(row.key)}`,
+      lastModified: safeDate(row.last_seen_at),
+      changeFrequency: "monthly" as const,
+      priority: 0.7,
     })),
     ...ingredients.map((row) => ({
       url: `${base}/ingredient/${encodeURIComponent(row.key)}`,

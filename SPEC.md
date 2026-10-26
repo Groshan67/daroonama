@@ -29,6 +29,9 @@
 |---|---|
 | `/` | خانه |
 | `/search` | جستجو و فیلتر نتایج |
+| `/drug-prices` | هاب نرخ دارو و استعلام قیمت |
+| `/compare` | مقایسه قیمت دو ماده مؤثره |
+| `/compare/[slug]` | مقایسه قیمت یک ماده و محصولات هم‌ماده |
 | `/drug/[code]` | جزئیات دارو، نمودار، بازنگری و مقایسه |
 | `/ingredient/[slug]` | محصولات و نمودار ماده مؤثره |
 | `/category/[code]` | مواد و محصولات یک دسته ATC |
@@ -152,7 +155,7 @@ Drug {
 - دامنه canonical: `https://groshan.ir`
 - metadata اختصاصی برای خانه، دارو، ماده مؤثره، شرکت، دسته، شبیه‌سازی و دستیار
 - OpenGraph/Twitter card با تصویر `1200×630`
-- `sitemap.xml` واقعی (۴۹٬۰۲۵ URL) و `robots.txt`
+- `sitemap.xml` واقعی (۴۹٬۰۴۷ URL) و `robots.txt`
 - JSON-LD: `WebSite`، `Organization` و `Dataset`
 - `manifest.webmanifest`
 - خروجی `output: "standalone"` با `server.js` و دیتابیس همراه
