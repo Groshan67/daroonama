@@ -48,7 +48,6 @@ export async function GET() {
       "Content-Type": "text/csv; charset=utf-8",
       "Content-Disposition": 'attachment; filename="groshan-drug-prices.csv"',
       "Cache-Control": "public, max-age=86400, s-maxage=86400",
-      "X-Robots-Tag": "noindex",
     },
   });
 }
