@@ -96,22 +96,6 @@ const structuredData = [
     description: SITE.description,
     sameAs: [SITE.url],
   },
-  {
-    "@context": "https://schema.org",
-    "@type": "Dataset",
-    name: "فهرست قیمت داروهای ایران",
-    alternateName: "Iran Drug Price Database",
-    description:
-      "داده‌های قیمت بسته و واحد محصولات دارویی ایران بر پایه فهرست رسمی کدهای دارویی (IRC)، شامل ماده مؤثره، کد ژنریک، ATC و تاریخچه قیمت.",
-    url: `${SITE.url}/search`,
-    keywords: SITE.keywords,
-    inLanguage: "fa-IR",
-    spatialCoverage: { "@type": "Place", name: "Iran" },
-    temporalCoverage: "2026/2026",
-    isAccessibleForFree: true,
-    creator: { "@type": "Organization", name: SITE.name, url: SITE.url },
-    variableMeasured: ["ConsumerPrice", "PackageCount", "قیمت بسته", "قیمت واحد"],
-  },
 ];
 
 export default async function RootLayout({ children }: { children: React.ReactNode }) {

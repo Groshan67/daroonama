@@ -105,6 +105,42 @@ export default async function DrugPricesPage({
     ],
   };
 
+  const datasetSchema = {
+    "@context": "https://schema.org",
+    "@type": "Dataset",
+    "@id": "https://groshan.ir/#drug-price-dataset",
+    name: "فهرست قیمت داروهای ایران",
+    alternateName: "Iran Drug Price Database",
+    description:
+      "داده‌های قیمت بسته و واحد محصولات دارویی ایران بر پایه فهرست رسمی کدهای دارویی (IRC)، شامل ماده مؤثره، کد ژنریک، ATC و تاریخچه قیمت.",
+    url: "https://groshan.ir/drug-prices",
+    license: "https://groshan.ir/about",
+    keywords: [
+      "قیمت دارو",
+      "نرخ دارو",
+      "فهرست دارویی ایران",
+      "کد IRC",
+      "ATC",
+      "ماده مؤثره",
+    ],
+    inLanguage: "fa-IR",
+    spatialCoverage: { "@type": "Place", name: "Iran" },
+    temporalCoverage: "2026-01-01/2026-12-31",
+    isAccessibleForFree: true,
+    creator: {
+      "@type": "Organization",
+      name: "دارونما",
+      url: "https://groshan.ir",
+    },
+    variableMeasured: ["ConsumerPrice", "PackageCount", "قیمت بسته", "قیمت واحد"],
+    distribution: {
+      "@type": "DataDownload",
+      name: "CSV قیمت بسته و واحد داروها",
+      contentUrl: "https://groshan.ir/data/drug-prices",
+      encodingFormat: "text/csv",
+    },
+  };
+
   return (
     <div className="page-container py-7 sm:py-9">
       <Breadcrumbs items={[{ label: "نرخ دارو" }]} />
@@ -279,9 +315,18 @@ export default async function DrugPricesPage({
               قیمت‌ها از فایل رسمی فهرست دارویی خوانده می‌شوند. قیمت بسته = ConsumerPrice ×
               PackageCount و قیمت واحد = ConsumerPrice.
             </p>
-            <Link href="/about" className="mt-2 inline-block text-[9px] font-medium text-brand">
-              درباره داده‌ها
-            </Link>
+            <div className="mt-2 flex flex-wrap gap-3">
+              <Link href="/about" className="text-[9px] font-medium text-brand">
+                درباره داده‌ها
+              </Link>
+              <a
+                href="/data/drug-prices"
+                className="text-[9px] font-medium text-brand"
+                download
+              >
+                دریافت CSV
+              </a>
+            </div>
           </section>
         </aside>
       </div>
@@ -305,6 +350,7 @@ export default async function DrugPricesPage({
         dangerouslySetInnerHTML={{
           __html: JSON.stringify([
             breadcrumbSchema,
+            datasetSchema,
             {
               "@context": "https://schema.org",
               "@type": "FAQPage",
