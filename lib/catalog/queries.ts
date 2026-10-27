@@ -1,4 +1,5 @@
 import { getDb } from "@/lib/db";
+import { faNum, faPrice } from "@/lib/format";
 import { listBatches } from "@/lib/import/service";
 import { normalizeSearch } from "@/lib/import/normalize";
 import { CATEGORY_LIST, CATEGORY_BY_ID } from "./category-meta";
@@ -970,60 +971,116 @@ export function getCatalogSearchHits(query: string, limit = 3) {
     id: product.irc,
     title: product.displayName,
     subtitle: [product.ingredientNameFa, product.brandOwnerName].filter(Boolean).join(" · "),
-    meta: product.dosageFormFa ?? undefined,
+    meta: product.priceToman !== null ? faPrice(product.priceToman) : product.dosageFormFa ?? undefined,
     href: `/drug/${product.irc}`,
   }));
 
   const db = getDb();
   const ingredients = db
     .prepare(
-      `SELECT p.ingredient_key AS id, MAX(p.ingredient_name_fa) AS name, COUNT(*) AS count
+      `SELECT p.ingredient_key AS id, MAX(p.ingredient_name_fa) AS name, COUNT(*) AS count,
+              MIN(${PACKAGE_TOMAN}) AS minPrice
        FROM products p JOIN product_identity i ON i.id = p.identity_id
        WHERE p.is_current = 1 AND p.search_text LIKE ?
        GROUP BY p.ingredient_key ORDER BY count DESC LIMIT ?`,
     )
-    .all(`%${q}%`, limit) as unknown as { id: string; name: string; count: number }[];
+    .all(`%${q}%`, limit) as unknown as {
+    id: string;
+    name: string;
+    count: number;
+    minPrice: number | null;
+  }[];
   const companies = db
     .prepare(
       `SELECT COALESCE(NULLIF(p.brand_owner_national_id, ''), p.brand_owner_name) AS id,
-              MAX(p.brand_owner_name) AS name, COUNT(*) AS count
+              MAX(p.brand_owner_name) AS name, COUNT(*) AS count,
+              MIN(${PACKAGE_TOMAN}) AS minPrice
        FROM products p JOIN product_identity i ON i.id = p.identity_id
        WHERE p.is_current = 1 AND p.search_text LIKE ?
        GROUP BY COALESCE(NULLIF(p.brand_owner_national_id, ''), p.brand_owner_name)
        ORDER BY count DESC LIMIT ?`,
     )
-    .all(`%${q}%`, limit) as unknown as { id: string; name: string; count: number }[];
+    .all(`%${q}%`, limit) as unknown as {
+    id: string;
+    name: string;
+    count: number;
+    minPrice: number | null;
+  }[];
 
-  const categories = CATEGORY_LIST.filter((category) => {
+  // When the query is a drug/ingredient, show categories of the matched
+  // products with their minimum package price. This makes category results
+  // useful for searches like "متفورمین" without requiring the user to know
+  // the ATC category name.
+  const matchedCategories = db
+    .prepare(
+      `SELECT p.category_id AS id, MAX(p.category_name) AS name, COUNT(*) AS count,
+              MIN(${PACKAGE_TOMAN}) AS minPrice
+       FROM products p JOIN product_identity i ON i.id = p.identity_id
+       WHERE p.is_current = 1
+         AND p.category_id IS NOT NULL AND p.category_id != ''
+         AND p.search_text LIKE ?
+       GROUP BY p.category_id
+       HAVING MIN(${PACKAGE_TOMAN}) IS NOT NULL
+       ORDER BY count DESC LIMIT ?`,
+    )
+    .all(`%${q}%`, limit) as unknown as {
+    id: string;
+    name: string;
+    count: number;
+    minPrice: number | null;
+  }[];
+
+  const staticCategoryHits = CATEGORY_LIST.filter((category) => {
     const haystack = normalizeSearch(`${category.name} ${category.shortName} ${category.description}`);
     return haystack.includes(q);
-  })
-    .slice(0, limit)
-    .map((category) => ({
+  }).map((category) => ({
+    kind: "category" as const,
+    id: category.id,
+    title: category.name,
+    subtitle: `${faCount(category.id)}`,
+    meta: undefined,
+    href: `/search?category=${category.id}`,
+  }));
+
+  const categoryHits = [
+    ...matchedCategories.map((item) => ({
       kind: "category" as const,
-      id: category.id,
-      title: category.name,
-      subtitle: `${faCount(category.id)}`,
-      href: `/search?category=${category.id}`,
-    }));
+      id: item.id,
+      title: item.name || faCount(item.id),
+      subtitle: `${faNum(item.count)} محصول`,
+      meta: item.minPrice !== null ? `از ${faPrice(item.minPrice)}` : undefined,
+      href: `/search?category=${item.id}`,
+    })),
+    ...staticCategoryHits.filter(
+      (item) => !matchedCategories.some((matched) => matched.id === item.id),
+    ),
+  ]
+    .sort((a, b) => {
+      const aExact = normalizeSearch(a.title) === q ? 1 : 0;
+      const bExact = normalizeSearch(b.title) === q ? 1 : 0;
+      return bExact - aExact;
+    })
+    .slice(0, limit);
 
   return {
     drugs,
+    categories: categoryHits,
     ingredients: ingredients.map((item) => ({
       kind: "ingredient" as const,
       id: item.id,
       title: item.name || item.id,
-      subtitle: `${item.count} محصول`,
+      subtitle: `${faNum(item.count)} محصول`,
+      meta: item.minPrice !== null ? `از ${faPrice(item.minPrice)}` : undefined,
       href: `/search?q=${encodeURIComponent(item.name || item.id)}`,
     })),
     companies: companies.map((item) => ({
       kind: "company" as const,
       id: item.id,
       title: item.name,
-      subtitle: `${item.count} محصول`,
+      subtitle: `${faNum(item.count)} محصول`,
+      meta: item.minPrice !== null ? `از ${faPrice(item.minPrice)}` : undefined,
       href: `/search?company=${encodeURIComponent(item.id)}`,
     })),
-    categories,
   };
 }
 

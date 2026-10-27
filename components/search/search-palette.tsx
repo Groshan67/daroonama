@@ -13,6 +13,7 @@ import {
   Search,
   SlidersHorizontal,
   Sparkles,
+  Tags,
   TrendingUp,
   X,
 } from "lucide-react";
@@ -30,6 +31,40 @@ const QUICK_LINKS = [
 
 type ResultGroup = { key: string; label: string; icon: typeof Pill; hits: SearchHit[] };
 
+const GROUP_THEME: Record<
+  string,
+  { section: string; icon: string; label: string; active: string; meta: string }
+> = {
+  category: {
+    section: "border-[#f0dfbd] bg-[#fffbf3]",
+    icon: "bg-[#fdf3e4] text-[#b9751d]",
+    label: "text-[#a96a18]",
+    active: "bg-[#fff3df]",
+    meta: "bg-[#fdf3e4] text-[#a96a18]",
+  },
+  drug: {
+    section: "border-[#d5e4f5] bg-[#f7fbff]",
+    icon: "bg-[#eaf2fe] text-brand",
+    label: "text-brand",
+    active: "bg-[#eef5fe]",
+    meta: "bg-[#eaf2fe] text-brand-dark",
+  },
+  ingredient: {
+    section: "border-[#cdeee6] bg-[#f5fcfa]",
+    icon: "bg-[#e6f7f3] text-[#158d7d]",
+    label: "text-[#158d7d]",
+    active: "bg-[#e8f7f3]",
+    meta: "bg-[#e6f7f3] text-[#158d7d]",
+  },
+  company: {
+    section: "border-[#ddd5f8] bg-[#faf8ff]",
+    icon: "bg-[#f0ecfd] text-[#7457d4]",
+    label: "text-[#6749c6]",
+    active: "bg-[#f0ecfd]",
+    meta: "bg-[#f0ecfd] text-[#6749c6]",
+  },
+};
+
 export function SearchPalette({ open, onClose }: { open: boolean; onClose: () => void }) {
   const router = useRouter();
   const inputRef = useRef<HTMLInputElement>(null);
@@ -41,10 +76,10 @@ export function SearchPalette({ open, onClose }: { open: boolean; onClose: () =>
   const groups: ResultGroup[] = useMemo(() => {
     if (!results) return [];
     return [
+      { key: "category", label: "دسته‌بندی‌های دارو", icon: Tags, hits: results.categories },
       { key: "drug", label: "داروها", icon: Pill, hits: results.drugs },
       { key: "ingredient", label: "مواد مؤثره", icon: Layers, hits: results.ingredients },
-      { key: "company", label: "سازندگان", icon: Building2, hits: results.companies },
-      { key: "category", label: "طبقه‌بندی‌ها", icon: Search, hits: results.categories },
+      { key: "company", label: "شرکت‌های داروسازی", icon: Building2, hits: results.companies },
     ].filter((group) => group.hits.length > 0);
   }, [results]);
 
@@ -223,12 +258,18 @@ export function SearchPalette({ open, onClose }: { open: boolean; onClose: () =>
             <>
               {groups.map((group) => {
                 const GroupIcon = group.icon;
+                const theme = GROUP_THEME[group.key] ?? GROUP_THEME.drug;
                 return (
-                  <div key={group.key} className="mb-1 px-1 py-1">
-                    <p className="mb-1 flex items-center gap-1.5 px-2 text-[10.5px] font-semibold tracking-wide text-faint">
-                      <GroupIcon className="h-3.5 w-3.5" />
-                      {group.label}
-                    </p>
+                  <div key={group.key} className={`mb-2 rounded-xl border p-1.5 ${theme.section}`}>
+                    <div className="flex items-center gap-2 px-2 py-1.5">
+                      <span className={`flex h-6 w-6 items-center justify-center rounded-md ${theme.icon}`}>
+                        <GroupIcon className="h-3.5 w-3.5" strokeWidth={1.9} />
+                      </span>
+                      <p className={`text-[10.5px] font-bold ${theme.label}`}>{group.label}</p>
+                      <span className={`num ms-auto rounded-full px-1.5 py-[1px] text-[8px] ${theme.icon}`}>
+                        {group.hits.length}
+                      </span>
+                    </div>
                     {group.hits.map((hit) => {
                       const index = flatHits.findIndex((item) => item.href === hit.href);
                       const active = index === activeIndex;
@@ -239,25 +280,27 @@ export function SearchPalette({ open, onClose }: { open: boolean; onClose: () =>
                           onMouseEnter={() => setActiveIndex(index)}
                           onClick={() => go(hit.href)}
                           className={`flex w-full items-center gap-3 rounded-lg px-2.5 py-2 text-start transition-colors ${
-                            active ? "bg-[#eef5fe]" : "hover:bg-surface-soft"
+                            active ? theme.active : "hover:bg-white/70"
                           }`}
                         >
                           <span
                             className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-lg ${
-                              active ? "bg-white text-brand shadow-sm" : "bg-surface-tint text-faint"
+                              active ? "bg-white shadow-sm" : theme.icon
                             }`}
                           >
                             <GroupIcon className="h-4 w-4" strokeWidth={1.8} />
                           </span>
                           <span className="min-w-0 flex-1">
-                            <span className="block truncate text-[13px] font-medium text-ink">
+                            <span className="block truncate text-[13px] font-semibold text-ink">
                               {hit.title}
                             </span>
-                            <span className="block truncate text-[11.5px] text-faint">
-                              {hit.subtitle}
-                              {hit.meta ? ` · ${hit.meta}` : ""}
-                            </span>
+                            <span className="block truncate text-[11px] text-faint">{hit.subtitle}</span>
                           </span>
+                          {hit.meta && (
+                            <span className={`num shrink-0 rounded-md px-1.5 py-0.5 text-[8px] font-semibold sm:text-[8.5px] ${theme.meta}`}>
+                              {hit.meta}
+                            </span>
+                          )}
                           {active && (
                             <CornerDownLeft className="h-3.5 w-3.5 shrink-0 text-brand/70" />
                           )}

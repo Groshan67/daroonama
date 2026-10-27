@@ -27,6 +27,13 @@ const HIT_ICONS = {
   category: Tags,
 } as const;
 
+const HIT_THEME = {
+  drug: "bg-[#eaf2fe] text-brand",
+  ingredient: "bg-[#e6f7f3] text-[#158d7d]",
+  company: "bg-[#f0ecfd] text-[#6749c6]",
+  category: "bg-[#fdf3e4] text-[#a96a18]",
+} as const;
+
 export function HomeSearch() {
   const router = useRouter();
   const wrapperRef = useRef<HTMLFormElement>(null);
@@ -39,10 +46,10 @@ export function HomeSearch() {
 
   const hits: SearchHit[] = results
     ? [
+        ...results.categories,
         ...results.drugs,
         ...results.ingredients,
         ...results.companies,
-        ...results.categories,
       ].slice(0, 7)
     : [];
 
@@ -196,17 +203,19 @@ export function HomeSearch() {
                             index === activeIndex ? "bg-[#eef5fe]" : "hover:bg-surface-soft"
                           }`}
                         >
-                          <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-surface-tint text-brand">
+                          <span className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-lg ${HIT_THEME[hit.kind]}`}>
                             <Icon className="h-4 w-4" strokeWidth={1.8} />
                           </span>
                           <span className="min-w-0 flex-1">
-                            <span className="block truncate text-[13px] font-medium text-ink">
-                              {hit.title}
+                            <span className="flex items-center gap-1.5">
+                              <span className="truncate text-[13px] font-medium text-ink">{hit.title}</span>
+                              {hit.meta && (
+                                <span className={`num shrink-0 rounded px-1 py-[1px] text-[8px] font-semibold ${HIT_THEME[hit.kind]}`}>
+                                  {hit.meta}
+                                </span>
+                              )}
                             </span>
-                            <span className="block truncate text-[11px] text-faint">
-                              {hit.subtitle}
-                              {hit.meta ? ` · ${hit.meta}` : ""}
-                            </span>
+                            <span className="block truncate text-[11px] text-faint">{hit.subtitle}</span>
                           </span>
                           {index === activeIndex && (
                             <CornerDownLeft className="h-3.5 w-3.5 text-brand/60" />
