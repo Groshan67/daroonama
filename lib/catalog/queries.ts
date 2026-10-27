@@ -50,6 +50,32 @@ const SELECT = `
 const PACKAGE_TOMAN =
   "CASE WHEN p.package_count > 0 THEN i.current_price_toman * p.package_count END";
 
+const SEARCH_STOP_WORDS = new Set([
+  "از",
+  "با",
+  "برای",
+  "در",
+  "و",
+  "یا",
+  "شرکت",
+  "دارو",
+  "داروی",
+  "داروسازی",
+  "دارو سازی",
+  "سازنده",
+  "تولید",
+  "محصول",
+  "قیمت",
+  "مکمل",
+]);
+
+function searchTokens(query: string): string[] {
+  return query
+    .split(" ")
+    .map((token) => token.trim())
+    .filter((token) => token.length >= 2 && !SEARCH_STOP_WORDS.has(token));
+}
+
 function text(value: unknown): string | null {
   return typeof value === "string" && value.trim() ? value : null;
 }
@@ -265,7 +291,62 @@ export function searchCatalog({
   const params: (string | number)[] = [];
 
   const query = normalizeSearch(q);
+  const tokens = searchTokens(query);
+  const companyIds = new Set<string>();
+
+  // Resolve company names (including Persian/English aliases sharing a
+  // national ID) so a query like "متفورمین اکتوورکو" can boost the Actoverco
+  // product without requiring the exact contiguous phrase in search_text.
   if (query) {
+    for (const token of tokens) {
+      if (/^\d+$/.test(token)) continue;
+      const companyRows = db
+        .prepare(
+          `SELECT DISTINCT COALESCE(NULLIF(brand_owner_national_id, ''), brand_owner_name) AS id
+           FROM products
+           WHERE is_current = 1 AND brand_owner_name LIKE ?
+           LIMIT 50`,
+        )
+        .all(`%${token}%`) as unknown as { id: string }[];
+      for (const row of companyRows) if (row.id) companyIds.add(row.id);
+    }
+  }
+
+  const companyTokenSet = new Set<string>();
+  if (companyIds.size > 0) {
+    for (const token of tokens) {
+      const hit = db
+        .prepare(
+          `SELECT 1 FROM products
+           WHERE is_current = 1 AND brand_owner_name LIKE ? LIMIT 1`,
+        )
+        .get(`%${token}%`);
+      if (hit) companyTokenSet.add(token);
+    }
+  }
+
+  const drugTokens = tokens.filter((token) => !companyTokenSet.has(token));
+  const companyIdList = [...companyIds];
+  const companyPlaceholders = companyIdList.map(() => "?").join(",");
+  const companyExpression =
+    companyIdList.length > 0
+      ? `COALESCE(NULLIF(p.brand_owner_national_id, ''), p.brand_owner_name) IN (${companyPlaceholders})`
+      : "";
+
+  if (drugTokens.length > 0) {
+    for (const token of drugTokens) {
+      where.push(`p.search_text LIKE ?`);
+      params.push(`%${token}%`);
+    }
+  } else if (companyExpression) {
+    where.push(companyExpression);
+    params.push(...companyIdList);
+  } else if (tokens.length > 0) {
+    for (const token of tokens) {
+      where.push(`p.search_text LIKE ?`);
+      params.push(`%${token}%`);
+    }
+  } else if (query) {
     where.push(`p.search_text LIKE ?`);
     params.push(`%${query}%`);
   }
@@ -311,7 +392,7 @@ export function searchCatalog({
   const pages = Math.max(1, Math.ceil(total / safePerPage));
   const currentPage = Math.min(safePage, pages);
 
-  const orderBy =
+  const baseOrderBy =
     sort === "price-asc"
       ? `${PACKAGE_TOMAN} IS NULL, ${PACKAGE_TOMAN} ASC, p.display_name ASC`
       : sort === "price-desc"
@@ -322,6 +403,23 @@ export function searchCatalog({
             ? "p.first_seen_at DESC, p.last_seen_at DESC, p.display_name ASC"
             : `${PACKAGE_TOMAN} IS NULL, p.display_name ASC`;
 
+  // When the query contains both a drug and a company, keep all matching
+  // drugs but rank the requested company's products first.
+  const shouldRankCompany = companyExpression !== "" && drugTokens.length > 0;
+  const companyRank = shouldRankCompany
+    ? `CASE WHEN ${companyExpression} THEN 0 ELSE 1 END`
+    : "";
+  const primaryDrugToken = drugTokens[0] ?? "";
+  const ingredientRank =
+    primaryDrugToken && !/^\d+$/.test(primaryDrugToken)
+      ? `CASE
+           WHEN p.ingredient_name_fa = ? THEN 0
+           WHEN p.ingredient_name_fa LIKE ? AND p.ingredient_name_fa NOT LIKE '%/%' THEN 1
+           ELSE 2
+         END`
+      : "";
+  const orderBy = [companyRank, ingredientRank, baseOrderBy].filter(Boolean).join(", ");
+
   const data = rows(
     `SELECT ${SELECT}
      FROM products p JOIN product_identity i ON i.id = p.identity_id
@@ -329,6 +427,8 @@ export function searchCatalog({
      ORDER BY ${orderBy}
      LIMIT ? OFFSET ?`,
     ...params,
+    ...(shouldRankCompany ? companyIdList : []),
+    ...(ingredientRank ? [primaryDrugToken, `${primaryDrugToken}%`] : []),
     safePerPage,
     (currentPage - 1) * safePerPage,
   );
@@ -965,8 +1065,15 @@ export function getCatalogSearchHits(query: string, limit = 3) {
   if (!q) {
     return { drugs: [], ingredients: [], companies: [], categories: [] };
   }
-  const products = searchCatalog({ q, perPage: Math.max(3, limit) });
-  const drugs = products.rows.slice(0, limit).map((product) => ({
+  const products = searchCatalog({ q, perPage: Math.max(12, limit * 3) });
+  const seenDrugs = new Set<string>();
+  const uniqueDrugs = products.rows.filter((product) => {
+    const key = `${product.displayName}|${product.brandOwnerName ?? product.producerName ?? ""}`;
+    if (seenDrugs.has(key)) return false;
+    seenDrugs.add(key);
+    return true;
+  });
+  const drugs = uniqueDrugs.slice(0, limit).map((product) => ({
     kind: "drug" as const,
     id: product.irc,
     title: product.displayName,
