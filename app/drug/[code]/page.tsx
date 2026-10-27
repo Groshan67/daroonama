@@ -146,21 +146,37 @@ export default async function DrugPage({ params, searchParams }: PageProps) {
             <p className="mt-1 text-[12px] leading-6 text-muted">
               {product.ingredientNameFa || "بدون ماده مؤثره"}
               {product.packageCount ? ` · بسته ${faNum(product.packageCount)}` : ""}
-              {product.brandOwnerName ? ` · ${product.brandOwnerName}` : ""}
             </p>
 
-            <div className="mt-4 flex flex-wrap items-center gap-x-5 gap-y-2 text-[10px] text-faint">
-              {product.brandOwnerName && (
+            <div className="mt-2.5 flex flex-wrap items-center gap-2 text-[10px]">
+              <span className="text-[9px] font-medium text-[#5b8f82]">صاحب برند</span>
+              {product.brandOwnerName ? (
                 <Link
                   href={`/search?company=${encodeURIComponent(product.brandOwnerNationalId ?? product.brandOwnerName)}`}
-                  className="inline-flex items-center gap-1.5 transition-colors hover:text-brand"
+                  className="inline-flex items-center gap-1.5 rounded-md bg-[#e8f7f3] px-2 py-1 font-semibold text-[#137a67] ring-1 ring-[#cdeee6] transition hover:bg-[#ddf3ec]"
                 >
-                  <span className="flex h-5 w-5 items-center justify-center rounded bg-surface-tint">
-                    <Layers className="h-3 w-3" />
-                  </span>
+                  <Layers className="h-3 w-3" />
                   {product.brandOwnerName}
                 </Link>
+              ) : (
+                <span className="text-faint">—</span>
               )}
+              <span className="text-[#b7d9d0]">|</span>
+              <span className="text-[9px] font-medium text-[#5b8f82]">تولیدکننده</span>
+              {product.producerName ? (
+                <Link
+                  href={`/search?q=${encodeURIComponent(product.producerName)}`}
+                  className="inline-flex items-center gap-1.5 rounded-md bg-[#eef8f4] px-2 py-1 font-semibold text-[#1c7d68] ring-1 ring-[#d8eee6] transition hover:bg-[#e2f4ed]"
+                >
+                  <MapPin className="h-3 w-3" />
+                  {product.producerName}
+                </Link>
+              ) : (
+                <span className="text-faint">—</span>
+              )}
+            </div>
+
+            <div className="mt-3 flex flex-wrap items-center gap-x-5 gap-y-2 text-[10px] text-faint">
               <Link
                 href={`/search?q=${encodeURIComponent(product.ingredientNameFa ?? product.displayName)}`}
                 className="inline-flex items-center gap-1.5 transition-colors hover:text-brand"
@@ -217,15 +233,15 @@ export default async function DrugPage({ params, searchParams }: PageProps) {
             )}
           </div>
 
-          <div className="border-t border-line bg-gradient-to-b from-[#f8fbff] to-[#fbfdff] p-5 lg:border-s lg:border-t-0">
-            <p className="text-[10px] font-medium text-faint">
+          <div className="border-t border-[#d3eee2] bg-gradient-to-b from-[#eaf8f1] via-[#f6fcf9] to-white p-5 lg:border-s lg:border-t-0">
+            <p className="text-[10px] font-medium text-[#5b8f82]">
               {usingMarketPrice ? "قیمت بازار (داروکده)" : "آخرین قیمت مصرف‌کننده"}
             </p>
             <div className="mt-1 flex items-end gap-1.5">
-              <span className="num text-[30px] font-extrabold leading-[1.3] tracking-tight text-ink">
+              <span className="num text-[30px] font-extrabold leading-[1.3] tracking-tight text-[#0f6b58]">
                 {displayPrice !== null ? faNum(displayPrice) : "—"}
               </span>
-              <span className="mb-1.5 text-[11px] font-medium text-muted">تومان</span>
+              <span className="mb-1.5 text-[11px] font-medium text-[#5b8f82]">تومان</span>
             </div>
             <div className="mt-1.5 text-[9px] leading-4 text-faint">
               {last
@@ -237,23 +253,23 @@ export default async function DrugPage({ params, searchParams }: PageProps) {
                   : "قیمتی در فایل منبع ثبت نشده است"}
             </div>
 
-            <div className="mt-3 grid grid-cols-2 gap-2 border-t border-line/80 pt-3">
+            <div className="mt-3 grid grid-cols-2 gap-2 border-t border-[#d8eee6] pt-3">
               <div>
-                <p className="text-[9px] text-faint">قیمت هر واحد</p>
-                <p className="num mt-0.5 text-[12px] font-bold text-ink-soft">
+                <p className="text-[9px] text-[#5b8f82]">قیمت هر واحد</p>
+                <p className="num mt-0.5 text-[12px] font-bold text-[#137a67]">
                   {displayUnitPrice !== null ? faNum(displayUnitPrice) : "—"}
-                  <span className="ms-1 text-[8.5px] font-normal text-faint">تومان</span>
+                  <span className="ms-1 text-[8.5px] font-normal text-[#6a9b8e]">تومان</span>
                 </p>
               </div>
               <div>
-                <p className="text-[9px] text-faint">تعداد بسته</p>
-                <p className="num mt-0.5 text-[12px] font-bold text-ink-soft">
+                <p className="text-[9px] text-[#5b8f82]">تعداد بسته</p>
+                <p className="num mt-0.5 text-[12px] font-bold text-[#137a67]">
                   {displayPackageCount !== null ? faNum(displayPackageCount) : "—"}
                 </p>
               </div>
             </div>
 
-            <div className="mt-3 rounded-lg border border-line/70 bg-white/70 p-2.5 text-[9px] leading-5 text-faint">
+            <div className="mt-3 rounded-lg border border-[#d8eee6] bg-white/70 p-2.5 text-[9px] leading-5 text-[#6a8f84]">
               {product.priceMissingLatest && product.priceToman !== null
                 ? "در فایل جدید قیمت این محصول نیامده؛ آخرین قیمت معتبر نمایش داده می‌شود."
                 : product.priceToman === null
